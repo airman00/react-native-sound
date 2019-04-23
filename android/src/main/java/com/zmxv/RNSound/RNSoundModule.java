@@ -19,6 +19,9 @@ import com.facebook.react.bridge.WritableMap;
 import com.facebook.react.modules.core.DeviceEventManagerModule;
 import com.facebook.react.modules.core.ExceptionsManagerModule;
 
+import com.obb_zipfile.APKExpansionSupport;
+import com.obb_zipfile.ZipResourceFile;
+
 import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
@@ -188,6 +191,42 @@ public class RNSoundModule extends ReactContextBaseJavaModule implements AudioMa
             return null;
         }
     }
+
+    // Play using Android OBB file
+    if (fileName.startsWith("content:/")){
+        int mMainVer = 59; // todo: should probably have this set somehow
+        int mPatchVer = 0;
+
+        ZipResourceFile expansionFile= null;
+        if(mMainVer>0) {
+            try {
+              expansionFile = APKExpansionSupport.getAPKExpansionZipFile(this.context, mMainVer, mPatchVer);
+              Log.d("RNSoundModule", "Expansion File " + expansionFile.toString() );
+              String finalName = fileName.replace("content://","")  + ".mp3";
+              Log.d("RNSoundModule", "Loading " + finalName );
+
+              AssetFileDescriptor fd = expansionFile.getAssetFileDescriptor(finalName);
+
+              try {
+                    mediaPlayer.setDataSource(fd.getFileDescriptor(), fd.getStartOffset(), fd.getLength());
+                } catch(IOException e) {
+                    Log.e("RNSoundModule", "Exception", e);
+                    return null;
+                }
+                fd.close();
+                return mediaPlayer;
+
+            } catch (IOException e) {
+                e.printStackTrace();
+                return null;
+
+            } catch (NullPointerException e) {
+                e.printStackTrace();
+                return null;
+            }
+        }
+    }
+
 
     File file = new File(fileName);
     if (file.exists()) {
