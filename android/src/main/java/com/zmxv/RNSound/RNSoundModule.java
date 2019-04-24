@@ -192,18 +192,21 @@ public class RNSoundModule extends ReactContextBaseJavaModule implements AudioMa
         }
     }
 
+   
     // Play using Android OBB file
-    if (fileName.startsWith("content:/")){
-        int mMainVer = 59; // todo: should probably have this set somehow
+    // Example: content://@59@sport_assets/'
+    if (fileName.startsWith("content://")){
+        String[] fileSplits = fileName.split("@");
+        int mMainVer =  Integer.parseInt( fileSplits[1] );//59; // todo: should probably have this set somehow
         int mPatchVer = 0;
 
         ZipResourceFile expansionFile= null;
         if(mMainVer>0) {
             try {
               expansionFile = APKExpansionSupport.getAPKExpansionZipFile(this.context, mMainVer, mPatchVer);
-              Log.d("RNSoundModule", "Expansion File " + expansionFile.toString() );
-              String finalName = fileName.replace("content://","")  + ".mp3";
-              Log.d("RNSoundModule", "Loading " + finalName );
+              Log.d("RNSoundModule", "Expansion File " + expansionFile.toString() + "Main Ver" + Integer.toString(mMainVer) );
+              String finalName = fileSplits[2]  + ".mp3";
+              Log.d("RNSoundModule", "Loading File = " + finalName );
 
               AssetFileDescriptor fd = expansionFile.getAssetFileDescriptor(finalName);
 
